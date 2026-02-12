@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         new TypeWriter(typingText, words);
     }
 
+    /* 
     // Stats Counter Animation
     const stats = document.querySelectorAll('.stat-number');
     
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
             animateValue(stat, 0, target, 2000);
         });
     }
+    */
 
     // Intersection Observer for animations
     const observerOptions = {
@@ -100,15 +102,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (entry.isIntersecting) {
                 entry.target.classList.add('active');
                 
+                /*
                 if (entry.target.classList.contains('hero-stats')) {
                     animateStats();
                 }
+                */
             }
         });
     }, observerOptions);
 
     // Observe elements
-    document.querySelectorAll('.reveal, .hero-stats, .skill-card, .project-card').forEach(el => {
+    // document.querySelectorAll('.reveal, .hero-stats, .skill-card, .project-card').forEach(el => {
+    document.querySelectorAll('.reveal, .skill-card, .project-card').forEach(el => {
         el.classList.add('reveal');
         observer.observe(el);
     });
@@ -424,6 +429,57 @@ document.addEventListener('DOMContentLoaded', function() {
     
 
     
+    // Contact Mini-Cards Animation
+    const contactCards = document.querySelectorAll('.contact-mini-card');
+    contactCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(-20px)';
+        card.style.transition = 'all 0.5s ease forwards';
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateX(0)';
+                    }, index * 150);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        observer.observe(card);
+    });
+
+    // ID Card 3D Effect with Glare
+    const card = document.getElementById('id-card');
+    if (card) {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = (y - centerY) / 15;
+            const rotateY = (centerX - x) / 15;
+            
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            
+            // Update mouse position for glare effect
+            const mouseX = (x / rect.width) * 100;
+            const mouseY = (y / rect.height) * 100;
+            card.style.setProperty('--mouse-x', `${mouseX}%`);
+            card.style.setProperty('--mouse-y', `${mouseY}%`);
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+            card.style.setProperty('--mouse-x', '50%');
+            card.style.setProperty('--mouse-y', '50%');
+        });
+    }
+
     // Initialize GitHub data
     fetchGitHubStats();
     fetchGitHubLanguages();
