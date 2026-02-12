@@ -8,12 +8,17 @@ on:
     branches: [ main, master ]
   workflow_dispatch: # Allows manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   update-stats:
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GH_TOKEN }}
     
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -22,7 +27,7 @@ jobs:
     
     - name: Fetch GitHub Contribution Data
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
         GITHUB_USERNAME: danubiolagoa
       run: |
         cat > fetch-stats.js << 'EOF'
@@ -30,7 +35,7 @@ jobs:
         const fs = require('fs');
         
         const username = process.env.GITHUB_USERNAME;
-        const token = process.env.GITHUB_TOKEN;
+        const token = process.env.GH_TOKEN;
         
         // GraphQL query to get contribution calendar
         const query = {
@@ -155,9 +160,12 @@ jobs:
         node fetch-stats.js
     
     - name: Commit and push if changed
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
         git add github-stats.json
         git diff --quiet && git diff --staged --quiet || git commit -m "Update GitHub stats [automated]"
         git push

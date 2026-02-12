@@ -17,62 +17,75 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Typing Effect
-    const typingText = document.querySelector('.typing-text');
-    const words = ['Vibe Coder', 'Especialista em IA', 'React & Angular Dev', 'TypeScript Enthusiast', 'Inovador em Tecnologia'];
-    let wordIndex = 0;
-    let charIndex = 0;
-    let isDeleting = false;
-
-    function type() {
-        const currentWord = words[wordIndex];
-        
-        if (isDeleting) {
-            typingText.textContent = currentWord.substring(0, charIndex - 1);
-            charIndex--;
-        } else {
-            typingText.textContent = currentWord.substring(0, charIndex + 1);
-            charIndex++;
+    class TypeWriter {
+        constructor(element, words, wait = 3000) {
+            this.element = element;
+            this.words = words;
+            this.txt = '';
+            this.wordIndex = 0;
+            this.wait = parseInt(wait, 10);
+            this.type();
+            this.isDeleting = false;
         }
 
-        let typeSpeed = isDeleting ? 50 : 100;
+        type() {
+            const current = this.wordIndex % this.words.length;
+            const fullTxt = this.words[current];
 
-        if (!isDeleting && charIndex === currentWord.length) {
-            typeSpeed = 2000;
-            isDeleting = true;
-        } else if (isDeleting && charIndex === 0) {
-            isDeleting = false;
-            wordIndex = (wordIndex + 1) % words.length;
-            typeSpeed = 500;
+            if (this.isDeleting) {
+                this.txt = fullTxt.substring(0, this.txt.length - 1);
+            } else {
+                this.txt = fullTxt.substring(0, this.txt.length + 1);
+            }
+
+            this.element.textContent = this.txt;
+
+            let typeSpeed = 100;
+
+            if (this.isDeleting) {
+                typeSpeed /= 2;
+            }
+
+            if (!this.isDeleting && this.txt === fullTxt) {
+                typeSpeed = this.wait;
+                this.isDeleting = true;
+            } else if (this.isDeleting && this.txt === '') {
+                this.isDeleting = false;
+                this.wordIndex++;
+                typeSpeed = 500;
+            }
+
+            setTimeout(() => this.type(), typeSpeed);
         }
-
-        setTimeout(type, typeSpeed);
     }
 
+    const typingText = document.querySelector('.typing-text');
+    const words = ['Vibe Coder', 'Especialista em IA', 'React & Angular Dev', 'TypeScript Enthusiast', 'Inovador em Tecnologia'];
+    
     if (typingText) {
-        type();
+        new TypeWriter(typingText, words);
     }
 
     // Stats Counter Animation
     const stats = document.querySelectorAll('.stat-number');
     
+    function animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
     function animateStats() {
         stats.forEach(stat => {
             const target = parseInt(stat.getAttribute('data-count'));
-            const duration = 2000;
-            const step = target / (duration / 16);
-            let current = 0;
-
-            const updateCount = () => {
-                current += step;
-                if (current < target) {
-                    stat.textContent = Math.floor(current);
-                    requestAnimationFrame(updateCount);
-                } else {
-                    stat.textContent = target;
-                }
-            };
-
-            updateCount();
+            animateValue(stat, 0, target, 2000);
         });
     }
 
@@ -346,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <li>Acesse <strong>Settings</strong> → <strong>Developer settings</strong> → <strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong></li>
                     <li>Gere um novo token com a permissão <strong>read:user</strong></li>
                     <li>Vá em <strong>Settings</strong> → <strong>Secrets and variables</strong> → <strong>Actions</strong> do seu repositório</li>
-                    <li>Adicione uma secret chamada <strong>GITHUB_TOKEN</strong> com seu token</li>
+                    <li>Adicione uma secret chamada <strong>GH_TOKEN</strong> com seu token</li>
                     <li>O workflow irá atualizar automaticamente</li>
                 </ol>
                 <a href="https://github.com/${GITHUB_USERNAME}" target="_blank" rel="noopener noreferrer" class="github-view-link">
