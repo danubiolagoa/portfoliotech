@@ -16,32 +16,32 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 0
     
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
     
     - name: Fetch GitHub Contribution Data
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
         GITHUB_USERNAME: danubiolagoa
       run: |
-        cat > fetch-stats.js << 'EOF'
+        node -e "
         const https = require('https');
         const fs = require('fs');
         
-        const username = process.env.GITHUB_USERNAME;
-        const token = process.env.GH_TOKEN;
-        
-        // GraphQL query to get contribution calendar
-        const query = {
-          query: `
-            query {
-              user(login: "${username}") {
+        async function run() {
+          const username = process.env.GITHUB_USERNAME;
+          const token = process.env.GH_TOKEN;
+          
+          const query = {
+            query: \`query {
+              user(login: \"\${username}\") {
                 contributionsCollection {
                   contributionCalendar {
                     totalContributions
@@ -49,123 +49,60 @@ jobs:
                       contributionDays {
                         contributionCount
                         date
-                        weekday
                       }
-                      firstDay
                     }
                   }
                 }
               }
-            }
-          `
-        };
-        
-        const options = {
-          hostname: 'api.github.com',
-          path: '/graphql',
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'User-Agent': 'GitHub-Stats-Updater'
-          }
-        };
-        
-        const req = https.request(options, (res) => {
-          let data = '';
-          
-          res.on('data', (chunk) => {
-            data += chunk;
-          });
-          
-          res.on('end', () => {
-            try {
-              const result = JSON.parse(data);
-              
-              if (result.errors) {
-                console.error('GraphQL errors:', result.errors);
-                // Fallback to basic data
-                createFallbackData();
-                return;
-              }
-              
-              const calendar = result.data.user.contributionsCollection.contributionCalendar;
-              const stats = {
-                updatedAt: new Date().toISOString(),
-                totalContributions: calendar.totalContributions,
-                weeks: calendar.weeks.map(week => ({
-                  days: week.contributionDays.map(day => ({
-                    date: day.date,
-                    count: day.contributionCount,
-                    level: getLevel(day.contributionCount)
-                  }))
-                }))
-              };
-              
-              fs.writeFileSync('github-stats.json', JSON.stringify(stats, null, 2));
-              console.log('Stats updated successfully!');
-              console.log(`Total contributions: ${stats.totalContributions}`);
-            } catch (error) {
-              console.error('Error parsing response:', error);
-              createFallbackData();
-            }
-          });
-        });
-        
-        req.on('error', (error) => {
-          console.error('Request error:', error);
-          createFallbackData();
-        });
-        
-        req.write(JSON.stringify(query));
-        req.end();
-        
-        function getLevel(count) {
-          if (count === 0) return 0;
-          if (count === 1) return 1;
-          if (count >= 2 && count <= 3) return 2;
-          if (count >= 4 && count <= 5) return 3;
-          return 4;
-        }
-        
-        function createFallbackData() {
-          // Create empty fallback data
-          const stats = {
-            updatedAt: new Date().toISOString(),
-            totalContributions: 0,
-            weeks: [],
-            error: 'Unable to fetch data from GitHub API'
+            }\`
           };
           
-          // Generate empty weeks
-          for (let w = 0; w < 53; w++) {
-            const week = { days: [] };
-            for (let d = 0; d < 7; d++) {
-              const date = new Date();
-              date.setDate(date.getDate() - ((52 - w) * 7 + (6 - d)));
-              week.days.push({
-                date: date.toISOString().split('T')[0],
-                count: 0,
-                level: 0
-              });
+          const options = {
+            hostname: 'api.github.com',
+            path: '/graphql',
+            method: 'POST',
+            headers: {
+              'Authorization': \`Bearer \${token}\`,
+              'Content-Type': 'application/json',
+              'User-Agent': 'NodeJS'
             }
-            stats.weeks.push(week);
-          }
+          };
           
-          fs.writeFileSync('github-stats.json', JSON.stringify(stats, null, 2));
-          console.log('Fallback stats created');
+          const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', d => data += d);
+            res.on('end', () => {
+              try {
+                const result = JSON.parse(data);
+                if (result.errors) throw new Error(JSON.stringify(result.errors));
+                const calendar = result.data.user.contributionsCollection.contributionCalendar;
+                const stats = {
+                  updatedAt: new Date().toISOString(),
+                  totalContributions: calendar.totalContributions,
+                  weeks: calendar.weeks.map(w => w.contributionDays.map(d => ({
+                    date: d.date,
+                    count: d.contributionCount,
+                    level: d.contributionCount > 0 ? Math.min(Math.ceil(d.contributionCount / 3), 4) : 0
+                  })))
+                };
+                fs.writeFileSync('github-stats.json', JSON.stringify(stats, null, 2));
+                console.log('Stats updated successfully');
+              } catch (e) {
+                console.error(e);
+                process.exit(1);
+              }
+            });
+          });
+          req.on('error', e => { console.error(e); process.exit(1); });
+          req.write(JSON.stringify(query));
+          req.end();
         }
-        EOF
-        
-        node fetch-stats.js
+        run();
+        "
     
-    - name: Commit and push if changed
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    - name: Commit and Push
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
         git add github-stats.json
-        git diff --quiet && git diff --staged --quiet || git commit -m "Update GitHub stats [automated]"
-        git push
+        git diff --quiet && git diff --staged --quiet || (git commit -m "data: update github stats [skip ci]" && git push)
