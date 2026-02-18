@@ -1,0 +1,15 @@
+{
+  "name": "portfoliotech",
+  "version": "1.0.0",
+  "description": "Portfólio de Danúbio Lagoa",
+  "scripts": {
+    "dev": "serve .",
+    "start": "serve ."
+  },
+  "keywords": [],
+  "author": "Danúbio Lagoa",
+  "license": "ISC",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

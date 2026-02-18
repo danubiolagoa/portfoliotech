@@ -1,5 +1,35 @@
-// Menu Mobile
 document.addEventListener('DOMContentLoaded', function() {
+    // Pixel Mode Toggle
+    const pixelToggle = document.querySelector('.pixel-toggle');
+    const body = document.body;
+    
+    // Check local storage
+    if (localStorage.getItem('pixelMode') === 'enabled') {
+        body.classList.add('pixel-mode');
+        updatePixelButton();
+    }
+    
+    if (pixelToggle) {
+        pixelToggle.addEventListener('click', function() {
+            body.classList.toggle('pixel-mode');
+            
+            if (body.classList.contains('pixel-mode')) {
+                localStorage.setItem('pixelMode', 'enabled');
+            } else {
+                localStorage.setItem('pixelMode', 'disabled');
+            }
+            updatePixelButton();
+        });
+    }
+
+    function updatePixelButton() {
+        if (pixelToggle) {
+            const isPixel = body.classList.contains('pixel-mode');
+            pixelToggle.innerHTML = isPixel ? '<span class="pixel-icon">✨</span>' : '<span class="pixel-icon">👾</span>';
+            pixelToggle.setAttribute('title', isPixel ? 'Voltar ao Modo Moderno' : 'Ativar Modo Pixel Art');
+        }
+    }
+
     const menuToggle = document.querySelector('.menu-toggle');
     const navMenu = document.querySelector('.nav-menu');
 
