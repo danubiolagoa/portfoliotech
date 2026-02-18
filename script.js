@@ -484,6 +484,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const card = document.getElementById('id-card');
     if (card) {
         card.addEventListener('mousemove', (e) => {
+            // Disable on mobile/touch devices
+            if (window.innerWidth <= 768) return;
+
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
