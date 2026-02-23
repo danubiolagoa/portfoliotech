@@ -441,41 +441,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById("img01");
     const captionText = document.getElementById("caption");
-    const closeBtn = document.getElementsByClassName("modal-close")[0];
+    const closeBtn = document.querySelector(".modal-close");
 
-    document.querySelectorAll('.project-image').forEach(imgContainer => {
-        imgContainer.addEventListener('click', function() {
-            const img = this.querySelector('img');
-            if (img) {
-                modal.style.display = "block";
-                modalImg.src = img.src;
-                captionText.innerHTML = img.alt || "Imagem do Projeto";
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
-            }
+    if (modal && modalImg) {
+        // Add click event to all project cards
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Prevent opening if clicking on a link
+                if (e.target.closest('a')) return;
+                
+                const img = this.querySelector('img');
+                if (img) {
+                    console.log('Opening modal for:', img.src);
+                    modal.style.display = "flex"; // Changed to flex for centering
+                    modal.style.alignItems = "center";
+                    modal.style.justifyContent = "center";
+                    modalImg.src = img.src;
+                    captionText.innerHTML = img.alt || "Imagem do Projeto";
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+                } else {
+                    console.log('No image found in card');
+                }
+            });
         });
-    });
 
-    if (closeBtn) {
-        closeBtn.onclick = function() {
-            modal.style.display = "none";
-            document.body.style.overflow = 'auto'; // Enable scrolling
+        // Close button
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                modal.style.display = "none";
+                document.body.style.overflow = 'auto';
+            }
         }
-    }
 
-    if (modal) {
+        // Click outside image
         modal.onclick = function(event) {
             if (event.target === modal) {
                 modal.style.display = "none";
-                document.body.style.overflow = 'auto'; // Enable scrolling
+                document.body.style.overflow = 'auto';
             }
         }
-    }
 
-    // Close on Escape key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === "Escape" && modal && modal.style.display === "block") {
-            modal.style.display = "none";
-            document.body.style.overflow = 'auto';
-        }
-    });
+        // Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape" && modal.style.display !== "none") {
+                modal.style.display = "none";
+                document.body.style.overflow = 'auto';
+            }
+        });
+    } else {
+        console.error('Modal elements not found!');
+    }
 });
