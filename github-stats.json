@@ -1,44 +1,7 @@
 {
-  "updatedAt": "2026-05-30T04:02:56.246Z",
-  "totalContributions": 957,
+  "updatedAt": "2026-05-31T04:38:32.621Z",
+  "totalContributions": 964,
   "weeks": [
-    [
-      {
-        "date": "2025-05-25",
-        "count": 0,
-        "level": 0
-      },
-      {
-        "date": "2025-05-26",
-        "count": 0,
-        "level": 0
-      },
-      {
-        "date": "2025-05-27",
-        "count": 0,
-        "level": 0
-      },
-      {
-        "date": "2025-05-28",
-        "count": 0,
-        "level": 0
-      },
-      {
-        "date": "2025-05-29",
-        "count": 0,
-        "level": 0
-      },
-      {
-        "date": "2025-05-30",
-        "count": 0,
-        "level": 0
-      },
-      {
-        "date": "2025-05-31",
-        "count": 0,
-        "level": 0
-      }
-    ],
     [
       {
         "date": "2025-06-01",
@@ -1828,12 +1791,12 @@
       },
       {
         "date": "2026-05-05",
-        "count": 1,
+        "count": 2,
         "level": 1
       },
       {
         "date": "2026-05-06",
-        "count": 1,
+        "count": 2,
         "level": 1
       },
       {
@@ -1870,8 +1833,8 @@
       },
       {
         "date": "2026-05-13",
-        "count": 5,
-        "level": 2
+        "count": 7,
+        "level": 3
       },
       {
         "date": "2026-05-14",
@@ -1959,6 +1922,13 @@
       },
       {
         "date": "2026-05-30",
+        "count": 3,
+        "level": 1
+      }
+    ],
+    [
+      {
+        "date": "2026-05-31",
         "count": 0,
         "level": 0
       }
